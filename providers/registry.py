@@ -77,7 +77,17 @@ def _create_custom(config: ProviderConfig, settings: Settings) -> BaseProvider:
             "CUSTOM_BASE_URL is not set. Add it to your .env file."
         )
     provider_name = getattr(settings, "custom_provider_name", None) or "Custom"
-    return CustomProvider(config, provider_name=provider_name, base_url=base_url)
+    configured_models = [
+        ref.model_id
+        for ref in settings.configured_chat_model_refs()
+        if ref.provider_id == "custom"
+    ]
+    return CustomProvider(
+        config,
+        provider_name=provider_name,
+        base_url=base_url,
+        configured_models=configured_models,
+    )
 
 
 PROVIDER_FACTORIES: dict[str, ProviderFactory] = {
@@ -218,6 +228,13 @@ def _model_list_provider_ids_for_settings(settings: Settings) -> tuple[str, ...]
             descriptor.credential_env is not None
             and _credential_for(descriptor, settings).strip()
         ):
+            provider_ids.append(provider_id)
+            continue
+        # Providers configured via base_url only (e.g. custom) — include when
+        # referenced and the base URL is set.
+        if provider_id in referenced_provider_ids and _string_attr(
+            settings, descriptor.base_url_attr
+        ).strip():
             provider_ids.append(provider_id)
     return tuple(provider_ids)
 

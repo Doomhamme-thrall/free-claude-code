@@ -391,6 +391,14 @@ class Settings(BaseSettings):
             )
         return v
 
+    @field_validator("custom_base_url")
+    @classmethod
+    def validate_custom_base_url(cls, v: str) -> str:
+        cleaned = v.rstrip("/")
+        if cleaned.endswith("/chat/completions"):
+            cleaned = cleaned[: -len("/chat/completions")]
+        return cleaned
+
     @field_validator("model", "model_opus", "model_sonnet", "model_haiku")
     @classmethod
     def validate_model_format(cls, v: str | None) -> str | None:

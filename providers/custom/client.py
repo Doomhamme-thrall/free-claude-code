@@ -2,6 +2,8 @@
 
 from typing import Any
 
+from loguru import logger
+
 from core.anthropic import ReasoningReplayMode, build_base_request_body
 from core.anthropic.conversion import OpenAIConversionError
 from providers.base import ProviderConfig
@@ -18,6 +20,7 @@ class CustomProvider(OpenAIChatTransport):
         *,
         provider_name: str,
         base_url: str,
+        configured_models: list[str] | None = None,
     ):
         super().__init__(
             config,
@@ -25,6 +28,17 @@ class CustomProvider(OpenAIChatTransport):
             base_url=base_url,
             api_key=config.api_key,
         )
+        self._configured_models = frozenset(configured_models or [])
+
+    async def list_model_ids(self) -> frozenset[str]:
+        try:
+            upstream = await super().list_model_ids()
+        except Exception:
+            logger.debug(
+                "Custom provider model list fetch failed, using configured models"
+            )
+            upstream = frozenset()
+        return upstream | self._configured_models
 
     def _build_request_body(
         self, request: Any, thinking_enabled: bool | None = None
