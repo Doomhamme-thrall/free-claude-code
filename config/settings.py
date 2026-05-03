@@ -145,6 +145,14 @@ class Settings(BaseSettings):
         validation_alias="OLLAMA_BASE_URL",
     )
 
+    # ==================== Custom Provider Config ====================
+    custom_api_key: str = Field(default="", validation_alias="CUSTOM_API_KEY")
+    custom_base_url: str = Field(default="", validation_alias="CUSTOM_BASE_URL")
+    custom_provider_name: str = Field(
+        default="Custom", validation_alias="CUSTOM_PROVIDER_NAME"
+    )
+    custom_proxy: str = Field(default="", validation_alias="CUSTOM_PROXY")
+
     # ==================== Model ====================
     # All Claude model requests are mapped to this single model (fallback)
     # Format: provider_type/model/name

@@ -21,6 +21,8 @@ OPENROUTER_DEFAULT_BASE = "https://openrouter.ai/api/v1"
 LMSTUDIO_DEFAULT_BASE = "http://localhost:1234/v1"
 LLAMACPP_DEFAULT_BASE = "http://localhost:8080/v1"
 OLLAMA_DEFAULT_BASE = "http://localhost:11434"
+# Custom provider has no hardcoded default; user must supply CUSTOM_BASE_URL.
+CUSTOM_DEFAULT_BASE: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -101,6 +103,16 @@ PROVIDER_CATALOG: dict[str, ProviderDescriptor] = {
             "native_anthropic",
             "local",
         ),
+    ),
+    "custom": ProviderDescriptor(
+        provider_id="custom",
+        transport_type="openai_chat",
+        credential_env=None,
+        credential_attr="custom_api_key",
+        default_base_url=CUSTOM_DEFAULT_BASE,
+        base_url_attr="custom_base_url",
+        proxy_attr="custom_proxy",
+        capabilities=("chat", "streaming", "tools", "thinking"),
     ),
 }
 
