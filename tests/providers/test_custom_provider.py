@@ -88,9 +88,7 @@ def test_custom_provider_no_api_key_required():
 
 def test_custom_provider_build_request_body():
     """_build_request_body delegates to build_base_request_body."""
-    from unittest.mock import patch as _patch
-
-    with _patch("providers.openai_compat.AsyncOpenAI"):
+    with patch("providers.openai_compat.AsyncOpenAI"):
         provider = create_provider("custom", _make_settings())
 
     assert isinstance(provider, CustomProvider)
@@ -109,7 +107,7 @@ def test_custom_provider_build_request_body():
     request.metadata = None
     request.stream = True
 
-    with _patch(
+    with patch(
         "providers.custom.client.build_base_request_body",
         return_value={"model": "gpt-4o"},
     ) as mock_build:
