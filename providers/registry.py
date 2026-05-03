@@ -68,6 +68,18 @@ def _create_ollama(config: ProviderConfig, _settings: Settings) -> BaseProvider:
     return OllamaProvider(config)
 
 
+def _create_custom(config: ProviderConfig, settings: Settings) -> BaseProvider:
+    from providers.custom import CustomProvider
+
+    base_url = config.base_url or getattr(settings, "custom_base_url", "")
+    if not base_url or not base_url.strip():
+        raise AuthenticationError(
+            "CUSTOM_BASE_URL is not set. Add it to your .env file."
+        )
+    provider_name = getattr(settings, "custom_provider_name", None) or "Custom"
+    return CustomProvider(config, provider_name=provider_name, base_url=base_url)
+
+
 PROVIDER_FACTORIES: dict[str, ProviderFactory] = {
     "nvidia_nim": _create_nvidia_nim,
     "open_router": _create_open_router,
@@ -75,6 +87,7 @@ PROVIDER_FACTORIES: dict[str, ProviderFactory] = {
     "lmstudio": _create_lmstudio,
     "llamacpp": _create_llamacpp,
     "ollama": _create_ollama,
+    "custom": _create_custom,
 }
 
 if set(PROVIDER_DESCRIPTORS) != set(SUPPORTED_PROVIDER_IDS) or set(
