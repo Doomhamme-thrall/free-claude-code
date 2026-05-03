@@ -126,7 +126,14 @@ def _build_models_list_response(
     models: list[ModelResponse] = []
     seen: set[str] = set()
 
-    for ref in settings.configured_chat_model_refs():
+    # First, include any models explicitly configured by the user. If a
+    # provider has configured models, we prefer those and skip its upstream
+    # discovery results (some providers list hundreds of models we don't want
+    # advertised to clients).
+    configured_refs = settings.configured_chat_model_refs()
+    providers_with_configured = {ref.provider_id for ref in configured_refs}
+
+    for ref in configured_refs:
         supports_thinking = None
         if provider_registry is not None:
             supports_thinking = provider_registry.cached_model_supports_thinking(
@@ -139,8 +146,14 @@ def _build_models_list_response(
             supports_thinking=supports_thinking,
         )
 
+    # Append discovered provider models, but skip any provider that already
+    # had explicit configured models (we don't want to surface huge upstream
+    # catalogs when the user configured a small set).
     if provider_registry is not None:
         for model_info in provider_registry.cached_prefixed_model_infos():
+            provider_id = model_info.model_id.split("/", 1)[0]
+            if provider_id in providers_with_configured:
+                continue
             _append_provider_model_variants(
                 models,
                 seen,
